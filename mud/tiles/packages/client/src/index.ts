@@ -1,9 +1,11 @@
 import { setup } from "./mud/setup";
 import mudConfig from "contracts/mud.config";
+import { encodeEntity } from "@latticexyz/store-sync/recs";
+import { getComponentValue } from "@latticexyz/recs";
 
 const {
   components,
-  systemCalls: { increment },
+  systemCalls: { increment, placeTile },
   network,
 } = await setup();
 
@@ -16,6 +18,16 @@ components.Counter.update$.subscribe((update) => {
 
 // Attach the increment function to the html element with ID `incrementButton` (if it exists)
 document.querySelector("#incrementButton")?.addEventListener("click", increment);
+
+// Components expose a stream that triggers when the component is updated.
+components.Tiles.update$.subscribe((update) => {
+  const [nextValue, prevValue] = update.value;
+  console.log("Tiles updated", update, nextValue?.building);
+  document.getElementById("tile")!.innerHTML = String(nextValue?.building ?? "unset");
+});
+
+// Attach the increment function to the html element with ID `incrementButton` (if it exists)
+document.querySelector("#placeTileButton")?.addEventListener("click", placeTile);
 
 // https://vitejs.dev/guide/env-and-mode.html
 if (import.meta.env.DEV) {
