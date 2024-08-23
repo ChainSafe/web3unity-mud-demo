@@ -20,9 +20,9 @@ struct GamePropertiesData {
   uint256 xSize;
   uint256 ySize;
   uint256 baseRate;
-  uint256 bonusSame;
-  uint256 bonusEnemy;
-  uint256 bonusVictim;
+  int256 bonusSame;
+  int256 bonusEnemy;
+  int256 bonusVictim;
   uint256 pricePerTile;
 }
 
@@ -35,8 +35,8 @@ library GameProperties {
 
   // Hex-encoded key schema of (uint256)
   Schema constant _keySchema = Schema.wrap(0x002001001f000000000000000000000000000000000000000000000000000000);
-  // Hex-encoded value schema of (uint256, uint256, uint256, uint256, uint256, uint256, uint256)
-  Schema constant _valueSchema = Schema.wrap(0x00e007001f1f1f1f1f1f1f000000000000000000000000000000000000000000);
+  // Hex-encoded value schema of (uint256, uint256, uint256, int256, int256, int256, uint256)
+  Schema constant _valueSchema = Schema.wrap(0x00e007001f1f1f3f3f3f1f000000000000000000000000000000000000000000);
 
   /**
    * @notice Get the table's key field names.
@@ -205,29 +205,29 @@ library GameProperties {
   /**
    * @notice Get bonusSame.
    */
-  function getBonusSame(uint256 gameId) internal view returns (uint256 bonusSame) {
+  function getBonusSame(uint256 gameId) internal view returns (int256 bonusSame) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(gameId));
 
     bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 3, _fieldLayout);
-    return (uint256(bytes32(_blob)));
+    return (int256(uint256(bytes32(_blob))));
   }
 
   /**
    * @notice Get bonusSame.
    */
-  function _getBonusSame(uint256 gameId) internal view returns (uint256 bonusSame) {
+  function _getBonusSame(uint256 gameId) internal view returns (int256 bonusSame) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(gameId));
 
     bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 3, _fieldLayout);
-    return (uint256(bytes32(_blob)));
+    return (int256(uint256(bytes32(_blob))));
   }
 
   /**
    * @notice Set bonusSame.
    */
-  function setBonusSame(uint256 gameId, uint256 bonusSame) internal {
+  function setBonusSame(uint256 gameId, int256 bonusSame) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(gameId));
 
@@ -237,7 +237,7 @@ library GameProperties {
   /**
    * @notice Set bonusSame.
    */
-  function _setBonusSame(uint256 gameId, uint256 bonusSame) internal {
+  function _setBonusSame(uint256 gameId, int256 bonusSame) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(gameId));
 
@@ -247,29 +247,29 @@ library GameProperties {
   /**
    * @notice Get bonusEnemy.
    */
-  function getBonusEnemy(uint256 gameId) internal view returns (uint256 bonusEnemy) {
+  function getBonusEnemy(uint256 gameId) internal view returns (int256 bonusEnemy) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(gameId));
 
     bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 4, _fieldLayout);
-    return (uint256(bytes32(_blob)));
+    return (int256(uint256(bytes32(_blob))));
   }
 
   /**
    * @notice Get bonusEnemy.
    */
-  function _getBonusEnemy(uint256 gameId) internal view returns (uint256 bonusEnemy) {
+  function _getBonusEnemy(uint256 gameId) internal view returns (int256 bonusEnemy) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(gameId));
 
     bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 4, _fieldLayout);
-    return (uint256(bytes32(_blob)));
+    return (int256(uint256(bytes32(_blob))));
   }
 
   /**
    * @notice Set bonusEnemy.
    */
-  function setBonusEnemy(uint256 gameId, uint256 bonusEnemy) internal {
+  function setBonusEnemy(uint256 gameId, int256 bonusEnemy) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(gameId));
 
@@ -279,7 +279,7 @@ library GameProperties {
   /**
    * @notice Set bonusEnemy.
    */
-  function _setBonusEnemy(uint256 gameId, uint256 bonusEnemy) internal {
+  function _setBonusEnemy(uint256 gameId, int256 bonusEnemy) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(gameId));
 
@@ -289,29 +289,29 @@ library GameProperties {
   /**
    * @notice Get bonusVictim.
    */
-  function getBonusVictim(uint256 gameId) internal view returns (uint256 bonusVictim) {
+  function getBonusVictim(uint256 gameId) internal view returns (int256 bonusVictim) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(gameId));
 
     bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 5, _fieldLayout);
-    return (uint256(bytes32(_blob)));
+    return (int256(uint256(bytes32(_blob))));
   }
 
   /**
    * @notice Get bonusVictim.
    */
-  function _getBonusVictim(uint256 gameId) internal view returns (uint256 bonusVictim) {
+  function _getBonusVictim(uint256 gameId) internal view returns (int256 bonusVictim) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(gameId));
 
     bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 5, _fieldLayout);
-    return (uint256(bytes32(_blob)));
+    return (int256(uint256(bytes32(_blob))));
   }
 
   /**
    * @notice Set bonusVictim.
    */
-  function setBonusVictim(uint256 gameId, uint256 bonusVictim) internal {
+  function setBonusVictim(uint256 gameId, int256 bonusVictim) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(gameId));
 
@@ -321,7 +321,7 @@ library GameProperties {
   /**
    * @notice Set bonusVictim.
    */
-  function _setBonusVictim(uint256 gameId, uint256 bonusVictim) internal {
+  function _setBonusVictim(uint256 gameId, int256 bonusVictim) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(gameId));
 
@@ -408,9 +408,9 @@ library GameProperties {
     uint256 xSize,
     uint256 ySize,
     uint256 baseRate,
-    uint256 bonusSame,
-    uint256 bonusEnemy,
-    uint256 bonusVictim,
+    int256 bonusSame,
+    int256 bonusEnemy,
+    int256 bonusVictim,
     uint256 pricePerTile
   ) internal {
     bytes memory _staticData = encodeStatic(xSize, ySize, baseRate, bonusSame, bonusEnemy, bonusVictim, pricePerTile);
@@ -432,9 +432,9 @@ library GameProperties {
     uint256 xSize,
     uint256 ySize,
     uint256 baseRate,
-    uint256 bonusSame,
-    uint256 bonusEnemy,
-    uint256 bonusVictim,
+    int256 bonusSame,
+    int256 bonusEnemy,
+    int256 bonusVictim,
     uint256 pricePerTile
   ) internal {
     bytes memory _staticData = encodeStatic(xSize, ySize, baseRate, bonusSame, bonusEnemy, bonusVictim, pricePerTile);
@@ -506,9 +506,9 @@ library GameProperties {
       uint256 xSize,
       uint256 ySize,
       uint256 baseRate,
-      uint256 bonusSame,
-      uint256 bonusEnemy,
-      uint256 bonusVictim,
+      int256 bonusSame,
+      int256 bonusEnemy,
+      int256 bonusVictim,
       uint256 pricePerTile
     )
   {
@@ -518,11 +518,11 @@ library GameProperties {
 
     baseRate = (uint256(Bytes.getBytes32(_blob, 64)));
 
-    bonusSame = (uint256(Bytes.getBytes32(_blob, 96)));
+    bonusSame = (int256(uint256(Bytes.getBytes32(_blob, 96))));
 
-    bonusEnemy = (uint256(Bytes.getBytes32(_blob, 128)));
+    bonusEnemy = (int256(uint256(Bytes.getBytes32(_blob, 128))));
 
-    bonusVictim = (uint256(Bytes.getBytes32(_blob, 160)));
+    bonusVictim = (int256(uint256(Bytes.getBytes32(_blob, 160))));
 
     pricePerTile = (uint256(Bytes.getBytes32(_blob, 192)));
   }
@@ -577,9 +577,9 @@ library GameProperties {
     uint256 xSize,
     uint256 ySize,
     uint256 baseRate,
-    uint256 bonusSame,
-    uint256 bonusEnemy,
-    uint256 bonusVictim,
+    int256 bonusSame,
+    int256 bonusEnemy,
+    int256 bonusVictim,
     uint256 pricePerTile
   ) internal pure returns (bytes memory) {
     return abi.encodePacked(xSize, ySize, baseRate, bonusSame, bonusEnemy, bonusVictim, pricePerTile);
@@ -595,9 +595,9 @@ library GameProperties {
     uint256 xSize,
     uint256 ySize,
     uint256 baseRate,
-    uint256 bonusSame,
-    uint256 bonusEnemy,
-    uint256 bonusVictim,
+    int256 bonusSame,
+    int256 bonusEnemy,
+    int256 bonusVictim,
     uint256 pricePerTile
   ) internal pure returns (bytes memory, EncodedLengths, bytes memory) {
     bytes memory _staticData = encodeStatic(xSize, ySize, baseRate, bonusSame, bonusEnemy, bonusVictim, pricePerTile);

@@ -45,23 +45,31 @@ export function createSystemCalls(
     return getComponentValue(Counter, singletonEntity);
   };
 
-  const placeTile = async () => {
-    /*
-     * Because IncrementSystem
-     * (https://mud.dev/templates/typescript/contracts#incrementsystemsol)
-     * is in the root namespace, `.increment` can be called directly
-     * on the World contract.
-     */
+  const placeTile = async (gameId, x, y, buildingType, sender) => {
     console.log("placeTile");
-    const tx = await worldContract.write.app__placeTile();
+    const tx = await worldContract.write.app__placeTile(gameId, x, y, buildingType, sender);
     await waitForTransaction(tx);
-    const key = encodeEntity(Tiles.metadata.keySchema, { gameId: 1, x: 2, y: 3 });
-    return getComponentValue(Tiles, key);
+  };
+
+  const configGame = async () => {
+    console.log("configGame");
+    const tx = await worldContract.write.app__configGame([
+      1, // gameId,
+      10, // xSize,
+      5, // ySize,
+      5, // baseRate,
+      1, // bonusSame,
+      -1, // bonusEnemy,
+      2, // bonusVictim,
+      0 // pricePerTile
+    ]);
+    await waitForTransaction(tx);
   };
 
 
   return {
     increment,
     placeTile,
+    configGame,
   };
 }

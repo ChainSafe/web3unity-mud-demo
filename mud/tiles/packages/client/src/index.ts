@@ -5,9 +5,11 @@ import { getComponentValue } from "@latticexyz/recs";
 
 const {
   components,
-  systemCalls: { increment, placeTile },
+  systemCalls: { increment, placeTile, configGame },
   network,
 } = await setup();
+
+await configGame();
 
 // Components expose a stream that triggers when the component is updated.
 components.Counter.update$.subscribe((update) => {
@@ -23,11 +25,20 @@ document.querySelector("#incrementButton")?.addEventListener("click", increment)
 components.Tiles.update$.subscribe((update) => {
   const [nextValue, prevValue] = update.value;
   console.log("Tiles updated", update, nextValue?.building);
-  document.getElementById("tile")!.innerHTML = String(nextValue?.building ?? "unset");
+  // document.getElementById("tile")!.innerHTML = String(nextValue?.building ?? "unset");
 });
 
-// Attach the increment function to the html element with ID `incrementButton` (if it exists)
-document.querySelector("#placeTileButton")?.addEventListener("click", placeTile);
+const listener = () => {
+  const gameId = document.getElementById("gameId")?.value;
+  const x = document.getElementById("x")?.value;
+  const y = document.getElementById("y")?.value;
+  const buildingType = document.getElementById("buildingType")?.value;
+  console.log("gameId, x, y, type: ", gameId, x, y, buildingType);
+  placeTile([gameId, x, y, buildingType]);
+};
+
+// Attach the placeTile function to the html element with ID `incrementButton` (if it exists)
+document.querySelector("#placeTileButton")?.addEventListener("click", listener);
 
 // https://vitejs.dev/guide/env-and-mode.html
 if (import.meta.env.DEV) {

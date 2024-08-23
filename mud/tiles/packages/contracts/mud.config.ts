@@ -12,9 +12,9 @@ export default defineWorld({
         xSize: "uint256",
         ySize: "uint256",
         baseRate: "uint256",
-        bonusSame: "uint256",
-        bonusEnemy: "uint256",
-        bonusVictim: "uint256",
+        bonusSame: "int256",
+        bonusEnemy: "int256",
+        bonusVictim: "int256",
         pricePerTile: "uint256"
       },
       key: ["gameId"],
