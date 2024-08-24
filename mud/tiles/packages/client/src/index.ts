@@ -28,6 +28,12 @@ components.Tiles.update$.subscribe((update) => {
   // document.getElementById("tile")!.innerHTML = String(nextValue?.building ?? "unset");
 });
 
+components.Owners.update$.subscribe((update) => {
+  const [nextValue, prevValue] = update.value;
+  console.log("Owners updated", nextValue);
+  // document.getElementById("tile")!.innerHTML = String(nextValue?.building ?? "unset");
+});
+
 const listener = () => {
   const gameId = document.getElementById("gameId")?.value;
   const x = document.getElementById("x")?.value;

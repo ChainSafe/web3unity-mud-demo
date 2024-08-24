@@ -12,6 +12,7 @@ contract TileSystem is System {
   error PositionInvalid();
 
   event Debug(uint256 arg);
+  event DebugBool(bool arg);
 
   struct NeighbourPosition {
     int8 deltaX;
@@ -37,6 +38,7 @@ contract TileSystem is System {
       int256 newX = int256(x) + positions[i].deltaX;
       int256 newY = int256(y) + positions[i].deltaY;
       TilesData memory neighbour = Tiles.get(gameId, uint256(newX), uint256(newY));
+      if (neighbour.owner == address(0)) continue;
       int256 bonusNeighbour;
       // Same
       if (neighbour.building == buildingType) {
@@ -58,13 +60,11 @@ contract TileSystem is System {
       OwnersData memory neighbourOwner = Owners.get(neighbour.owner);
       uint256 rate = neighbourOwner.rate;
       if (rate > 0) {
-        emit Debug(block.timestamp);
-        emit Debug(neighbourOwner.lastUpdateTime);
         uint256 unclaimed = rate * (block.timestamp - neighbourOwner.lastUpdateTime);
         Owners.setUnclaimed(neighbour.owner, unclaimed);
       }
       Owners.setLastUpdateTime(neighbour.owner, block.timestamp);
-      rate = (int256(rate) + bonusNeighbour < 0) ? uint256(int256(rate) + bonusNeighbour) : uint256(0);
+      rate = (int256(rate) + bonusNeighbour > 0) ? uint256(int256(rate) + bonusNeighbour) : uint256(0);
       Owners.setRate(neighbour.owner, rate);
     }
     uint256 ownerRate = ownersData.rate;
@@ -73,7 +73,7 @@ contract TileSystem is System {
       Owners.setUnclaimed(msg.sender, unclaimed);
     }
     Owners.setLastUpdateTime(msg.sender, block.timestamp);
-    ownerRate = (int256(ownerRate) + newTileRate < 0) ? uint256(int256(ownerRate) + newTileRate) : uint256(0);
+    ownerRate = (int256(ownerRate) + newTileRate > 0) ? uint256(int256(ownerRate) + newTileRate) : uint256(0);
     Owners.setRate(msg.sender, ownerRate);
   }
 
