@@ -11,5 +11,9 @@ import { BuildingType } from "../common.sol";
  * @dev This interface is automatically generated from the corresponding system contract. Do not edit manually.
  */
 interface ITileSystem {
+  error AlreadyPlaced();
+  error FeeInvalid();
+  error PositionInvalid();
+
   function app__placeTile(uint256 gameId, uint256 x, uint256 y, BuildingType buildingType) external payable;
 }

@@ -24,7 +24,7 @@ document.querySelector("#incrementButton")?.addEventListener("click", increment)
 // Components expose a stream that triggers when the component is updated.
 components.Tiles.update$.subscribe((update) => {
   const [nextValue, prevValue] = update.value;
-  console.log("Tiles updated", update, nextValue?.building);
+  console.log("Tiles updated", nextValue);
   // document.getElementById("tile")!.innerHTML = String(nextValue?.building ?? "unset");
 });
 
