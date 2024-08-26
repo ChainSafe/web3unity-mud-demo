@@ -12,7 +12,6 @@ contract TileSystem is System {
   error PositionInvalid();
 
   event Debug(uint256 arg);
-  event DebugBool(bool arg);
 
   struct NeighbourPosition {
     int8 deltaX;
@@ -67,7 +66,7 @@ contract TileSystem is System {
       rate = (int256(rate) + bonusNeighbour > 0) ? uint256(int256(rate) + bonusNeighbour) : uint256(0);
       Owners.setRate(neighbour.owner, rate);
     }
-    uint256 ownerRate = ownersData.rate;
+    uint256 ownerRate = Owners.getRate(msg.sender);
     if (ownerRate > 0) {
       uint256 unclaimed = ownerRate * (block.timestamp - ownersData.lastUpdateTime);
       Owners.setUnclaimed(msg.sender, unclaimed);

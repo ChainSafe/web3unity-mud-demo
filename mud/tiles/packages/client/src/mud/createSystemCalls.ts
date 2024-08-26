@@ -57,10 +57,10 @@ export function createSystemCalls(
       1, // gameId,
       10, // xSize,
       5, // ySize,
-      5, // baseRate,
+      10, // baseRate,
       1, // bonusSame,
-      -1, // bonusEnemy,
-      2, // bonusVictim,
+      3, // bonusEnemy,
+      -2, // bonusVictim,
       0 // pricePerTile
     ]);
     await waitForTransaction(tx);
