@@ -6,4 +6,3 @@ pragma solidity >=0.8.24;
 import { GameProperties, GamePropertiesData } from "./tables/GameProperties.sol";
 import { Tiles, TilesData } from "./tables/Tiles.sol";
 import { Owners, OwnersData } from "./tables/Owners.sol";
-import { Counter } from "./tables/Counter.sol";

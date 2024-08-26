@@ -38,11 +38,5 @@ export default defineWorld({
         },
         key: ["ownerAddress"],
     },
-    Counter: {
-      schema: {
-        value: "uint32",
-      },
-      key: [],
-    },
   },
 });

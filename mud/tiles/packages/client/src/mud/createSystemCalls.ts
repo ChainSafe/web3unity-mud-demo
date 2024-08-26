@@ -6,7 +6,7 @@
 import { getComponentValue } from "@latticexyz/recs";
 import { ClientComponents } from "./createClientComponents";
 import { SetupNetworkResult } from "./setupNetwork";
-import { encodeEntity, singletonEntity } from "@latticexyz/store-sync/recs";
+// import { encodeEntity, singletonEntity } from "@latticexyz/store-sync/recs";
 
 export type SystemCalls = ReturnType<typeof createSystemCalls>;
 
@@ -31,20 +31,7 @@ export function createSystemCalls(
    *   (https://github.com/latticexyz/mud/blob/main/templates/vanilla/packages/client/src/mud/setupNetwork.ts#L77-L83).
    */
   { worldContract, waitForTransaction }: SetupNetworkResult,
-  { Counter, Tiles }: ClientComponents,
 ) {
-  const increment = async () => {
-    /*
-     * Because IncrementSystem
-     * (https://mud.dev/templates/typescript/contracts#incrementsystemsol)
-     * is in the root namespace, `.increment` can be called directly
-     * on the World contract.
-     */
-    const tx = await worldContract.write.app__increment();
-    await waitForTransaction(tx);
-    return getComponentValue(Counter, singletonEntity);
-  };
-
   const placeTile = async (gameId, x, y, buildingType, sender) => {
     console.log("placeTile");
     const tx = await worldContract.write.app__placeTile(gameId, x, y, buildingType, sender);
@@ -68,7 +55,6 @@ export function createSystemCalls(
 
 
   return {
-    increment,
     placeTile,
     configGame,
   };

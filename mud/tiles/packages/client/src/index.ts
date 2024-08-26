@@ -5,21 +5,11 @@ import { getComponentValue } from "@latticexyz/recs";
 
 const {
   components,
-  systemCalls: { increment, placeTile, configGame },
+  systemCalls: { placeTile, configGame },
   network,
 } = await setup();
 
 await configGame();
-
-// Components expose a stream that triggers when the component is updated.
-components.Counter.update$.subscribe((update) => {
-  const [nextValue, prevValue] = update.value;
-  console.log("Counter updated", update, { nextValue, prevValue });
-  document.getElementById("counter")!.innerHTML = String(nextValue?.value ?? "unset");
-});
-
-// Attach the increment function to the html element with ID `incrementButton` (if it exists)
-document.querySelector("#incrementButton")?.addEventListener("click", increment);
 
 // Components expose a stream that triggers when the component is updated.
 components.Tiles.update$.subscribe((update) => {
