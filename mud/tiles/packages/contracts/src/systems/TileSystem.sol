@@ -57,18 +57,22 @@ contract TileSystem is System {
           bonusNeighbour = gameProperties.bonusEnemy;
       }
       OwnersData memory neighbourOwner = Owners.get(neighbour.owner);
-      uint256 rate = neighbourOwner.rate;
-      if (rate > 0) {
-        uint256 unclaimed = rate * (block.timestamp - neighbourOwner.lastUpdateTime);
-        Owners.setUnclaimed(neighbour.owner, unclaimed);
+      if (neighbour.owner == msg.sender) {
+        newTileRate += bonusNeighbour;
+      } else {
+        uint256 rate = neighbourOwner.rate;
+        if (rate > 0) {
+          uint256 unclaimed = neighbourOwner.unclaimed + rate * (block.timestamp - neighbourOwner.lastUpdateTime);
+          Owners.setUnclaimed(neighbour.owner, unclaimed);
+        }
+        rate = (int256(rate) + bonusNeighbour > 0) ? uint256(int256(rate) + bonusNeighbour) : uint256(0);
+        Owners.setLastUpdateTime(neighbour.owner, block.timestamp);
+        Owners.setRate(neighbour.owner, rate);
       }
-      Owners.setLastUpdateTime(neighbour.owner, block.timestamp);
-      rate = (int256(rate) + bonusNeighbour > 0) ? uint256(int256(rate) + bonusNeighbour) : uint256(0);
-      Owners.setRate(neighbour.owner, rate);
     }
-    uint256 ownerRate = Owners.getRate(msg.sender);
+    uint256 ownerRate = ownersData.rate;
     if (ownerRate > 0) {
-      uint256 unclaimed = ownerRate * (block.timestamp - ownersData.lastUpdateTime);
+      uint256 unclaimed = ownersData.unclaimed + ownerRate * (block.timestamp - ownersData.lastUpdateTime);
       Owners.setUnclaimed(msg.sender, unclaimed);
     }
     Owners.setLastUpdateTime(msg.sender, block.timestamp);
