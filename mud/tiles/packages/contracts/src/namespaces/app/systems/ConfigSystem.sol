@@ -3,7 +3,7 @@ pragma solidity >=0.8.24;
 
 import { System } from "@latticexyz/world/src/System.sol";
 import { GameProperties } from "../codegen/index.sol";
-import { BuildingType } from "../codegen/common.sol";
+import { BuildingType } from "../../../codegen/common.sol";
 
 contract ConfigSystem is System {
   function configGame(
