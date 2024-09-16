@@ -34,7 +34,7 @@ export function createSystemCalls(
 ) {
   const placeTile = async (gameId, x, y, buildingType, sender) => {
     console.log("placeTile");
-    const tx = await worldContract.write.app__placeTile(gameId, x, y, buildingType, sender);
+    const tx = await worldContract.write.app__placeTile([gameId, x, y, buildingType], {value: 5});
     await waitForTransaction(tx);
   };
 
@@ -48,7 +48,7 @@ export function createSystemCalls(
       1, // bonusSame,
       3, // bonusEnemy,
       -2, // bonusVictim,
-      0 // pricePerTile
+      5 // pricePerTile
     ]);
     await waitForTransaction(tx);
   };

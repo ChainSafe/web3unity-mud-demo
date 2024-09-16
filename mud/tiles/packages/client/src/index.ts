@@ -30,7 +30,7 @@ const listener = () => {
   const y = document.getElementById("y")?.value;
   const buildingType = document.getElementById("buildingType")?.value;
   console.log("gameId, x, y, type: ", gameId, x, y, buildingType);
-  placeTile([gameId, x, y, buildingType]);
+  placeTile(gameId, x, y, buildingType);
 };
 
 // Attach the placeTile function to the html element with ID `incrementButton` (if it exists)

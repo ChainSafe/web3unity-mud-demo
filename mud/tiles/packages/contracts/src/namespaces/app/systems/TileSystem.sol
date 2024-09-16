@@ -23,9 +23,9 @@ contract TileSystem is System {
     if (owner != address(0)) revert AlreadyPlaced();
     GamePropertiesData memory gameProperties = GameProperties.get(gameId);
     if ((x > gameProperties.xSize) || (y > gameProperties.ySize)) revert PositionInvalid();
-    if (msg.value != gameProperties.pricePerTile) revert FeeInvalid();
-    Tiles.set(gameId, x, y, buildingType, msg.sender);
-    OwnersData memory ownersData = Owners.get(msg.sender);
+    if (_msgValue() != gameProperties.pricePerTile) revert FeeInvalid();
+    Tiles.set(gameId, x, y, buildingType, _msgSender());
+    OwnersData memory ownersData = Owners.get(_msgSender());
     // calc rate for this tile and update rate for neighbors
     NeighbourPosition[] memory positions = createNeighbourPositions();
     int256 newTileRate = int256(gameProperties.baseRate);
@@ -57,7 +57,7 @@ contract TileSystem is System {
           bonusNeighbour = gameProperties.bonusEnemy;
       }
       OwnersData memory neighbourOwner = Owners.get(neighbour.owner);
-      if (neighbour.owner == msg.sender) {
+      if (neighbour.owner == _msgSender()) {
         newTileRate += bonusNeighbour;
       } else {
         uint256 rate = neighbourOwner.rate;
@@ -73,11 +73,11 @@ contract TileSystem is System {
     uint256 ownerRate = ownersData.rate;
     if (ownerRate > 0) {
       uint256 unclaimed = ownersData.unclaimed + ownerRate * (block.timestamp - ownersData.lastUpdateTime);
-      Owners.setUnclaimed(msg.sender, unclaimed);
+      Owners.setUnclaimed(_msgSender(), unclaimed);
     }
-    Owners.setLastUpdateTime(msg.sender, block.timestamp);
+    Owners.setLastUpdateTime(_msgSender(), block.timestamp);
     ownerRate = (int256(ownerRate) + newTileRate > 0) ? uint256(int256(ownerRate) + newTileRate) : uint256(0);
-    Owners.setRate(msg.sender, ownerRate);
+    Owners.setRate(_msgSender(), ownerRate);
   }
 
   function createNeighbourPositions() internal pure returns(NeighbourPosition[] memory positions) {
@@ -90,5 +90,9 @@ contract TileSystem is System {
     positions[5] = NeighbourPosition( 1, -1); // right top
     positions[6] = NeighbourPosition( 1,  0); // right middle
     positions[7] = NeighbourPosition( 1,  1); // right bottom
+  }
+
+  function testCall() public {
+    emit Debug(1);
   }
 }

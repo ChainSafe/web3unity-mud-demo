@@ -19,4 +19,6 @@ interface IConfigSystem {
     int256 bonusVictim,
     uint256 pricePerTile
   ) external;
+
+  function app__withdraw() external;
 }
