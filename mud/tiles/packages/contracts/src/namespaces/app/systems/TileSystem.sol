@@ -11,8 +11,6 @@ contract TileSystem is System {
   error FeeInvalid();
   error PositionInvalid();
 
-  event Debug(uint256 arg);
-
   struct NeighbourPosition {
     int8 deltaX;
     int8 deltaY;
@@ -90,9 +88,5 @@ contract TileSystem is System {
     positions[5] = NeighbourPosition( 1, -1); // right top
     positions[6] = NeighbourPosition( 1,  0); // right middle
     positions[7] = NeighbourPosition( 1,  1); // right bottom
-  }
-
-  function testCall() public {
-    emit Debug(1);
   }
 }

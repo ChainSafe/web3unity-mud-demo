@@ -20,7 +20,8 @@
     "@latticexyz/schema-type": "2.1.1",
     "@latticexyz/store": "2.1.1",
     "@latticexyz/world": "2.1.1",
-    "@latticexyz/world-modules": "2.1.1"
+    "@latticexyz/world-modules": "2.1.1",
+    "viem": "2.19.8"
   },
   "devDependencies": {
     "@types/node": "^18.15.11",

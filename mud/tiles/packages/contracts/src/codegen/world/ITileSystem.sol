@@ -16,6 +16,4 @@ interface ITileSystem {
   error PositionInvalid();
 
   function app__placeTile(uint256 gameId, uint256 x, uint256 y, BuildingType buildingType) external payable;
-
-  function app__testCall() external;
 }
