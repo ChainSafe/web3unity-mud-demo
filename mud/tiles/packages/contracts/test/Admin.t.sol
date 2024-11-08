@@ -11,6 +11,7 @@ import { IWorld } from "../src/codegen/world/IWorld.sol";
 import { GameProperties, GamePropertiesData, Owners, OwnersData } from "../src/namespaces/app/codegen/index.sol";
 import { BuildingType } from "../src/codegen/common.sol";
 import { IERC20Mintable } from "@latticexyz/world-modules/src/modules/erc20-puppet/IERC20Mintable.sol";
+import { IERC721Mintable } from "@latticexyz/world-modules/src/modules/erc721-puppet/IERC721Mintable.sol";
 
 contract AdminTest is MudTest {
   address constant admin = 0x953C2658358Ace1D0335a11140Bb7D2469FCbC05;
@@ -91,10 +92,8 @@ contract AdminTest is MudTest {
   }
 
   function testClaim() public {
-      ResourceId namespaceResource = WorldResourceIdLib.encodeNamespace(bytes14("TOKENS"));
-      ResourceId erc20RegistryResource = WorldResourceIdLib.encode(RESOURCE_TABLE, "erc20-puppet", "ERC20Registry");
-      ERC20Registry.getTokenAddress(erc20RegistryResource, namespaceResource);
-      IERC20Mintable token = IERC20Mintable(ERC20Registry.getTokenAddress(erc20RegistryResource, namespaceResource));
+      IERC20Mintable token = IERC20Mintable(IWorld(worldAddress).app__getToken());
+      IERC721Mintable nft = IERC721Mintable(IWorld(worldAddress).app__getNft());
       vm.prank(admin);
       IWorld(worldAddress).app__configGame(
         1, // gameId,
@@ -123,8 +122,14 @@ contract AdminTest is MudTest {
       vm.prank(notAdmin);
       IWorld(worldAddress).app__claim();
       assertEq(token.balanceOf(notAdmin), 30);
+      assertEq(nft.balanceOf(notAdmin), 1);
+      assertEq(nft.ownerOf(10101), notAdmin);
       assertEq(worldAddress.balance, 5);
       vm.expectRevert();
+      vm.prank(admin);
       token.mint(notAdmin, 100);
+      vm.expectRevert();
+      vm.prank(admin);
+      nft.mint(notAdmin, 1);
   }
 }

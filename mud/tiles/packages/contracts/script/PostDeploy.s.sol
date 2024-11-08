@@ -29,6 +29,13 @@ contract PostDeploy is Script {
       Systems.getSystem(ownersResource)
     );
 
+    ResourceId tileResource = WorldResourceIdLib.encode(RESOURCE_SYSTEM, "app", "TileSystem");
+    // Allow Tile system to mint NFTs.
+    IWorld(worldAddress).transferOwnership(
+      WorldResourceIdLib.encodeNamespace(bytes14("TILES")),
+      Systems.getSystem(tileResource)
+    );
+
     vm.stopBroadcast();
   }
 }

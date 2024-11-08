@@ -11,6 +11,7 @@ import { IWorld } from "../../../codegen/world/IWorld.sol";
 
 contract ConfigSystem is System {
 
+  error SizeInvalid();
   event Withdraw(uint256 indexed a);
 
   function configGame(
@@ -24,6 +25,8 @@ contract ConfigSystem is System {
       uint256 pricePerTile
   ) public {
     // Add access control.
+    if (xSize >= 100 || ySize >= 100) revert SizeInvalid();
+
     GameProperties.set(
       gameId,
       xSize,

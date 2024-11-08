@@ -16,6 +16,12 @@ contract OwnersSystem is System {
   event Claim(address indexed owner, uint256 amount);
   error NothingToClaim();
 
+  function getToken() public view returns(address) {
+    ResourceId namespaceResource = WorldResourceIdLib.encodeNamespace(bytes14("TOKENS"));
+    ResourceId erc20RegistryResource = WorldResourceIdLib.encode(RESOURCE_TABLE, "erc20-puppet", "ERC20Registry");
+    return ERC20Registry.getTokenAddress(erc20RegistryResource, namespaceResource);
+  }
+
   function claim() public {
     OwnersData memory user = Owners.get(_msgSender());
     uint256 unclaimed = user.unclaimed;
@@ -25,10 +31,7 @@ contract OwnersSystem is System {
       Owners.setLastUpdateTime(_msgSender(), block.timestamp);
     }
     if (unclaimed == 0) revert NothingToClaim();
-    ResourceId namespaceResource = WorldResourceIdLib.encodeNamespace(bytes14("TOKENS"));
-    ResourceId erc20RegistryResource = WorldResourceIdLib.encode(RESOURCE_TABLE, "erc20-puppet", "ERC20Registry");
-    address tokenAddress = ERC20Registry.getTokenAddress(erc20RegistryResource, namespaceResource);
-    IERC20Mintable token = IERC20Mintable(tokenAddress);
+    IERC20Mintable token = IERC20Mintable(getToken());
     Owners.setUnclaimed(_msgSender(), 0);
     token.mint(_msgSender(), unclaimed);
     emit Claim(_msgSender(), unclaimed);

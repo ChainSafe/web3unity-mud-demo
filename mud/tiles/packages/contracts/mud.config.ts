@@ -74,22 +74,19 @@ export default defineWorld({
         },
         Tiles: {
           schema: {
-            gameId: "uint256",
-            x: "uint256",
-            y: "uint256",
+            id: "uint256",
             building: "BuildingType",
-            owner: "address"
           },
-          key: ["gameId", "x", "y"],
+          key: ["id"],
         },
         Owners: {
           schema: {
-              ownerAddress: "address",
-              rate: "int256",
-              lastUpdateTime: "uint256",
-              unclaimed: "uint256"
-            },
-            key: ["ownerAddress"],
+            ownerAddress: "address",
+            rate: "int256",
+            lastUpdateTime: "uint256",
+            unclaimed: "uint256"
+          },
+          key: ["ownerAddress"],
         },
       },
       systems: {
