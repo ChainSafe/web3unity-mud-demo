@@ -27,8 +27,7 @@ contract ManageERC721 is Script {
     vm.startBroadcast(deployerPrivateKey);
  
     // Get the ERC-721 token address
-    ResourceId namespaceResource = WorldResourceIdLib.encodeNamespace(bytes14("DDDD"));
-    // console.logBytes32(bytes32(WorldResourceIdLib.encodeNamespace(bytes14("app"))));
+    ResourceId namespaceResource = WorldResourceIdLib.encodeNamespace(bytes14("TILES"));
     ResourceId erc721RegistryResource = WorldResourceIdLib.encode(RESOURCE_TABLE, "erc721-puppet", "ERC721Registry");
     address tokenAddress = ERC721Registry.getTokenAddress(erc721RegistryResource, namespaceResource);
     console.log("Token address", tokenAddress);

@@ -23,6 +23,7 @@ contract ConfigSystem is System {
       int256 bonusVictim,
       uint256 pricePerTile
   ) public {
+    // Add access control.
     GameProperties.set(
       gameId,
       xSize,
@@ -32,10 +33,11 @@ contract ConfigSystem is System {
       bonusEnemy,
       bonusVictim,
       pricePerTile
-      );
+    );
   }
 
   function withdraw() public {
+    // Add access control.
     ResourceId namespaceResource = WorldResourceIdLib.encodeNamespace("app");
     uint256 balance = Balances.get(namespaceResource);
     IWorld(_world()).transferBalanceToAddress(namespaceResource, _msgSender(), balance);

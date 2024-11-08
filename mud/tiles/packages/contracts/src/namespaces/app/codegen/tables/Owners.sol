@@ -17,7 +17,7 @@ import { EncodedLengths, EncodedLengthsLib } from "@latticexyz/store/src/Encoded
 import { ResourceId } from "@latticexyz/store/src/ResourceId.sol";
 
 struct OwnersData {
-  uint256 rate;
+  int256 rate;
   uint256 lastUpdateTime;
   uint256 unclaimed;
 }
@@ -31,8 +31,8 @@ library Owners {
 
   // Hex-encoded key schema of (address)
   Schema constant _keySchema = Schema.wrap(0x0014010061000000000000000000000000000000000000000000000000000000);
-  // Hex-encoded value schema of (uint256, uint256, uint256)
-  Schema constant _valueSchema = Schema.wrap(0x006003001f1f1f00000000000000000000000000000000000000000000000000);
+  // Hex-encoded value schema of (int256, uint256, uint256)
+  Schema constant _valueSchema = Schema.wrap(0x006003003f1f1f00000000000000000000000000000000000000000000000000);
 
   /**
    * @notice Get the table's key field names.
@@ -71,29 +71,29 @@ library Owners {
   /**
    * @notice Get rate.
    */
-  function getRate(address ownerAddress) internal view returns (uint256 rate) {
+  function getRate(address ownerAddress) internal view returns (int256 rate) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(ownerAddress)));
 
     bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 0, _fieldLayout);
-    return (uint256(bytes32(_blob)));
+    return (int256(uint256(bytes32(_blob))));
   }
 
   /**
    * @notice Get rate.
    */
-  function _getRate(address ownerAddress) internal view returns (uint256 rate) {
+  function _getRate(address ownerAddress) internal view returns (int256 rate) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(ownerAddress)));
 
     bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 0, _fieldLayout);
-    return (uint256(bytes32(_blob)));
+    return (int256(uint256(bytes32(_blob))));
   }
 
   /**
    * @notice Set rate.
    */
-  function setRate(address ownerAddress, uint256 rate) internal {
+  function setRate(address ownerAddress, int256 rate) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(ownerAddress)));
 
@@ -103,7 +103,7 @@ library Owners {
   /**
    * @notice Set rate.
    */
-  function _setRate(address ownerAddress, uint256 rate) internal {
+  function _setRate(address ownerAddress, int256 rate) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = bytes32(uint256(uint160(ownerAddress)));
 
@@ -227,7 +227,7 @@ library Owners {
   /**
    * @notice Set the full data using individual values.
    */
-  function set(address ownerAddress, uint256 rate, uint256 lastUpdateTime, uint256 unclaimed) internal {
+  function set(address ownerAddress, int256 rate, uint256 lastUpdateTime, uint256 unclaimed) internal {
     bytes memory _staticData = encodeStatic(rate, lastUpdateTime, unclaimed);
 
     EncodedLengths _encodedLengths;
@@ -242,7 +242,7 @@ library Owners {
   /**
    * @notice Set the full data using individual values.
    */
-  function _set(address ownerAddress, uint256 rate, uint256 lastUpdateTime, uint256 unclaimed) internal {
+  function _set(address ownerAddress, int256 rate, uint256 lastUpdateTime, uint256 unclaimed) internal {
     bytes memory _staticData = encodeStatic(rate, lastUpdateTime, unclaimed);
 
     EncodedLengths _encodedLengths;
@@ -289,8 +289,8 @@ library Owners {
    */
   function decodeStatic(
     bytes memory _blob
-  ) internal pure returns (uint256 rate, uint256 lastUpdateTime, uint256 unclaimed) {
-    rate = (uint256(Bytes.getBytes32(_blob, 0)));
+  ) internal pure returns (int256 rate, uint256 lastUpdateTime, uint256 unclaimed) {
+    rate = (int256(uint256(Bytes.getBytes32(_blob, 0))));
 
     lastUpdateTime = (uint256(Bytes.getBytes32(_blob, 32)));
 
@@ -335,7 +335,7 @@ library Owners {
    * @notice Tightly pack static (fixed length) data using this table's schema.
    * @return The static data, encoded into a sequence of bytes.
    */
-  function encodeStatic(uint256 rate, uint256 lastUpdateTime, uint256 unclaimed) internal pure returns (bytes memory) {
+  function encodeStatic(int256 rate, uint256 lastUpdateTime, uint256 unclaimed) internal pure returns (bytes memory) {
     return abi.encodePacked(rate, lastUpdateTime, unclaimed);
   }
 
@@ -346,7 +346,7 @@ library Owners {
    * @return The dynamic (variable length) data, encoded into a sequence of bytes.
    */
   function encode(
-    uint256 rate,
+    int256 rate,
     uint256 lastUpdateTime,
     uint256 unclaimed
   ) internal pure returns (bytes memory, EncodedLengths, bytes memory) {

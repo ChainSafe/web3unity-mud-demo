@@ -20,7 +20,7 @@ contract TileSystem is System {
     address owner = Tiles.getOwner(gameId, x, y);
     if (owner != address(0)) revert AlreadyPlaced();
     GamePropertiesData memory gameProperties = GameProperties.get(gameId);
-    if ((x > gameProperties.xSize) || (y > gameProperties.ySize)) revert PositionInvalid();
+    if ((x >= gameProperties.xSize) || (y >= gameProperties.ySize)) revert PositionInvalid();
     if (_msgValue() != gameProperties.pricePerTile) revert FeeInvalid();
     Tiles.set(gameId, x, y, buildingType, _msgSender());
     OwnersData memory ownersData = Owners.get(_msgSender());
@@ -30,8 +30,8 @@ contract TileSystem is System {
     for (uint256 i = 0; i < positions.length; i++) {
       if (((positions[i].deltaX < 0) && (x == 0))
         || ((positions[i].deltaY < 0) && (y == 0))
-        || ((positions[i].deltaX == 1) && (x == gameProperties.xSize))
-        || ((positions[i].deltaY == 1) && (y == gameProperties.ySize))) continue;
+        || ((positions[i].deltaX == 1) && (x == gameProperties.xSize - 1))
+        || ((positions[i].deltaY == 1) && (y == gameProperties.ySize - 1))) continue;
       int256 newX = int256(x) + positions[i].deltaX;
       int256 newY = int256(y) + positions[i].deltaY;
       TilesData memory neighbour = Tiles.get(gameId, uint256(newX), uint256(newY));
@@ -41,41 +41,37 @@ contract TileSystem is System {
       if (neighbour.building == buildingType) {
         newTileRate += gameProperties.bonusSame;
         bonusNeighbour = gameProperties.bonusSame;
-      } 
+      } else if ((neighbour.building < buildingType)
+        || ((neighbour.building == type(BuildingType).max) && (uint(buildingType) == 0))
+      ) { 
         // Neighbour is victim
-        else if ((neighbour.building < buildingType)
-        || ((neighbour.building == type(BuildingType).max)
-        && (uint(buildingType) == 0))) { 
-          newTileRate += gameProperties.bonusEnemy;
-          bonusNeighbour = gameProperties.bonusVictim;
-      }       
+        newTileRate += gameProperties.bonusEnemy;
+        bonusNeighbour = gameProperties.bonusVictim;
+      } else {
         // Neighbour is enemy
-        else {
-          newTileRate += gameProperties.bonusVictim;
-          bonusNeighbour = gameProperties.bonusEnemy;
+        newTileRate += gameProperties.bonusVictim;
+        bonusNeighbour = gameProperties.bonusEnemy;
       }
       OwnersData memory neighbourOwner = Owners.get(neighbour.owner);
       if (neighbour.owner == _msgSender()) {
         newTileRate += bonusNeighbour;
       } else {
-        uint256 rate = neighbourOwner.rate;
+        int256 rate = neighbourOwner.rate;
         if (rate > 0) {
-          uint256 unclaimed = neighbourOwner.unclaimed + rate * (block.timestamp - neighbourOwner.lastUpdateTime);
+          uint256 unclaimed = neighbourOwner.unclaimed + uint256(rate) * (block.timestamp - neighbourOwner.lastUpdateTime);
           Owners.setUnclaimed(neighbour.owner, unclaimed);
         }
-        rate = (int256(rate) + bonusNeighbour > 0) ? uint256(int256(rate) + bonusNeighbour) : uint256(0);
         Owners.setLastUpdateTime(neighbour.owner, block.timestamp);
-        Owners.setRate(neighbour.owner, rate);
+        Owners.setRate(neighbour.owner, rate + bonusNeighbour);
       }
     }
-    uint256 ownerRate = ownersData.rate;
+    int256 ownerRate = ownersData.rate;
     if (ownerRate > 0) {
-      uint256 unclaimed = ownersData.unclaimed + ownerRate * (block.timestamp - ownersData.lastUpdateTime);
+      uint256 unclaimed = ownersData.unclaimed + uint256(ownerRate) * (block.timestamp - ownersData.lastUpdateTime);
       Owners.setUnclaimed(_msgSender(), unclaimed);
     }
     Owners.setLastUpdateTime(_msgSender(), block.timestamp);
-    ownerRate = (int256(ownerRate) + newTileRate > 0) ? uint256(int256(ownerRate) + newTileRate) : uint256(0);
-    Owners.setRate(_msgSender(), ownerRate);
+    Owners.setRate(_msgSender(), ownerRate + newTileRate);
   }
 
   function createNeighbourPositions() internal pure returns(NeighbourPosition[] memory positions) {

@@ -3,10 +3,14 @@ pragma solidity >=0.8.24;
 
 import "forge-std/Test.sol";
 import { MudTest } from "@latticexyz/world/test/MudTest.t.sol";
-
+import { WorldResourceIdLib } from "@latticexyz/world/src/WorldResourceId.sol";
+import { ResourceId } from "@latticexyz/store/src/ResourceId.sol";
+import { RESOURCE_TABLE } from "@latticexyz/store/src/storeResourceTypes.sol";
+import { ERC20Registry } from "@latticexyz/world-modules/src/codegen/index.sol";
 import { IWorld } from "../src/codegen/world/IWorld.sol";
-import { GameProperties, GamePropertiesData } from "../src/codegen/index.sol";
+import { GameProperties, GamePropertiesData, Owners, OwnersData } from "../src/namespaces/app/codegen/index.sol";
 import { BuildingType } from "../src/codegen/common.sol";
+import { IERC20Mintable } from "@latticexyz/world-modules/src/modules/erc20-puppet/IERC20Mintable.sol";
 
 contract AdminTest is MudTest {
   address constant admin = 0x953C2658358Ace1D0335a11140Bb7D2469FCbC05;
@@ -84,5 +88,43 @@ contract AdminTest is MudTest {
       IWorld(worldAddress).app__withdraw();
       assertEq(admin.balance, balanceBefore + 5);
       assertEq(worldAddress.balance, 0);
+  }
+
+  function testClaim() public {
+      ResourceId namespaceResource = WorldResourceIdLib.encodeNamespace(bytes14("TOKENS"));
+      ResourceId erc20RegistryResource = WorldResourceIdLib.encode(RESOURCE_TABLE, "erc20-puppet", "ERC20Registry");
+      ERC20Registry.getTokenAddress(erc20RegistryResource, namespaceResource);
+      IERC20Mintable token = IERC20Mintable(ERC20Registry.getTokenAddress(erc20RegistryResource, namespaceResource));
+      vm.prank(admin);
+      IWorld(worldAddress).app__configGame(
+        1, // gameId,
+        10, // xSize,
+        5, // ySize,
+        10, // baseRate,
+        1, // bonusSame,
+        3, // bonusEnemy,
+        -2, // bonusVictim,
+        5 // pricePerTile
+      );
+      GamePropertiesData memory gameProperties = GameProperties.get(1);
+      assertEq(gameProperties.pricePerTile, 5);
+
+      vm.prank(notAdmin);
+      IWorld(worldAddress).app__placeTile{value: 5}(
+        1,
+        1,
+        1,
+        BuildingType.Circle
+      );
+      skip(3);
+      assertEq(worldAddress.balance, 5);
+      OwnersData memory notAdminData = Owners.get(notAdmin);
+      assertEq(notAdminData.rate, 10);
+      vm.prank(notAdmin);
+      IWorld(worldAddress).app__claim();
+      assertEq(token.balanceOf(notAdmin), 30);
+      assertEq(worldAddress.balance, 5);
+      vm.expectRevert();
+      token.mint(notAdmin, 100);
   }
 }
