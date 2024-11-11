@@ -3,8 +3,11 @@ pragma solidity >=0.8.24;
 
 import { Script } from "forge-std/Script.sol";
 import { console } from "forge-std/console.sol";
+import { Systems } from "@latticexyz/world/src/codegen/tables/Systems.sol";
 import { StoreSwitch } from "@latticexyz/store/src/StoreSwitch.sol";
-import { GlobalConfig } from "../src/namespaces/app/codegen/index.sol";
+import { WorldResourceIdLib } from "@latticexyz/world/src/WorldResourceId.sol";
+import { ResourceId } from "@latticexyz/store/src/ResourceId.sol";
+import { RESOURCE_SYSTEM } from "@latticexyz/world/src/worldResourceTypes.sol";
 
 import { IWorld } from "../src/codegen/world/IWorld.sol";
 
@@ -19,13 +22,19 @@ contract PostDeploy is Script {
     // Start broadcasting transactions from the deployer account
     vm.startBroadcast(deployerPrivateKey);
 
-    // ------------------ EXAMPLES ------------------
+    ResourceId ownersResource = WorldResourceIdLib.encode(RESOURCE_SYSTEM, "app", "OwnersSystem");
+    // Allow Owners system to mint tokens.
+    IWorld(worldAddress).transferOwnership(
+      WorldResourceIdLib.encodeNamespace(bytes14("TOKENS")),
+      Systems.getSystem(ownersResource)
+    );
 
-    // Call increment on the world via the registered function selector
-    // uint32 newValue = IWorld(worldAddress).app__placeTile();
-    // console.log("Increment via IWorld:", newValue);
-
-    GlobalConfig.set(address(0xC7f2Cf4845C6db0e1a1e91ED41Bcd0FcC1b0E141));
+    ResourceId tileResource = WorldResourceIdLib.encode(RESOURCE_SYSTEM, "app", "TileSystem");
+    // Allow Tile system to mint NFTs.
+    IWorld(worldAddress).transferOwnership(
+      WorldResourceIdLib.encodeNamespace(bytes14("TILES")),
+      Systems.getSystem(tileResource)
+    );
 
     vm.stopBroadcast();
   }

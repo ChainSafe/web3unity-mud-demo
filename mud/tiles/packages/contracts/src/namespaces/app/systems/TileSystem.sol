@@ -2,8 +2,14 @@
 pragma solidity >=0.8.24;
 
 import { System } from "@latticexyz/world/src/System.sol";
-import { Tiles, TilesData, Owners, OwnersData, GameProperties, GamePropertiesData } from "../codegen/index.sol";
+import { Tiles, Owners, OwnersData, GameProperties, GamePropertiesData } from "../codegen/index.sol";
 import { BuildingType } from "../../../codegen/common.sol";
+import { WorldResourceIdLib } from "@latticexyz/world/src/WorldResourceId.sol";
+import { ResourceId } from "@latticexyz/store/src/ResourceId.sol";
+import { RESOURCE_TABLE } from "@latticexyz/store/src/storeResourceTypes.sol";
+import { WorldResourceIdLib } from "@latticexyz/world/src/WorldResourceId.sol";
+import { ERC721Registry } from "@latticexyz/world-modules/src/codegen/index.sol";
+import { IERC721Mintable } from "@latticexyz/world-modules/src/modules/erc721-puppet/IERC721Mintable.sol";
 
 contract TileSystem is System {
 
@@ -16,13 +22,35 @@ contract TileSystem is System {
     int8 deltaY;
   }
 
+  function tileId(uint256 gameId, uint256 x, uint256 y) public pure returns(uint256) {
+    if (x >= 100 || y >= 100) revert PositionInvalid();
+    return (gameId * 10000) + (x * 100) + y;
+  }
+
+  function _ownerOf(IERC721Mintable nft, uint256 tokenId) internal view returns(address) {
+    try nft.ownerOf(tokenId) returns(address owner) {
+      return owner;
+    } catch (bytes memory) {
+      return address(0);
+    }
+  }
+
+  function getNft() public view returns(address) {
+    ResourceId namespaceResource = WorldResourceIdLib.encodeNamespace(bytes14("TILES"));
+    ResourceId erc721RegistryResource = WorldResourceIdLib.encode(RESOURCE_TABLE, "erc721-puppet", "ERC721Registry");
+    return ERC721Registry.getTokenAddress(erc721RegistryResource, namespaceResource);
+  }
+
   function placeTile(uint256 gameId, uint256 x, uint256 y, BuildingType buildingType) public payable {
-    address owner = Tiles.getOwner(gameId, x, y);
-    if (owner != address(0)) revert AlreadyPlaced();
     GamePropertiesData memory gameProperties = GameProperties.get(gameId);
-    if ((x > gameProperties.xSize) || (y > gameProperties.ySize)) revert PositionInvalid();
+    if ((x >= gameProperties.xSize) || (y >= gameProperties.ySize)) revert PositionInvalid();
     if (_msgValue() != gameProperties.pricePerTile) revert FeeInvalid();
-    Tiles.set(gameId, x, y, buildingType, _msgSender());
+    IERC721Mintable nft = IERC721Mintable(getNft());
+    uint256 newTileId = tileId(gameId, x, y);
+    address owner = _ownerOf(nft, newTileId);
+    if (owner != address(0)) revert AlreadyPlaced();
+
+    Tiles.set(newTileId, buildingType);
     OwnersData memory ownersData = Owners.get(_msgSender());
     // calc rate for this tile and update rate for neighbors
     NeighbourPosition[] memory positions = createNeighbourPositions();
@@ -30,53 +58,56 @@ contract TileSystem is System {
     for (uint256 i = 0; i < positions.length; i++) {
       if (((positions[i].deltaX < 0) && (x == 0))
         || ((positions[i].deltaY < 0) && (y == 0))
-        || ((positions[i].deltaX == 1) && (x == gameProperties.xSize))
-        || ((positions[i].deltaY == 1) && (y == gameProperties.ySize))) continue;
-      int256 newX = int256(x) + positions[i].deltaX;
-      int256 newY = int256(y) + positions[i].deltaY;
-      TilesData memory neighbour = Tiles.get(gameId, uint256(newX), uint256(newY));
-      if (neighbour.owner == address(0)) continue;
+        || ((positions[i].deltaX == 1) && (x == gameProperties.xSize - 1))
+        || ((positions[i].deltaY == 1) && (y == gameProperties.ySize - 1))) continue;
+      uint256 neighbourTileId = tileId(
+        gameId,
+        uint256(int256(x) + positions[i].deltaX),
+        uint256(int256(y) + positions[i].deltaY)
+      );
+      address neighbour = _ownerOf(nft, neighbourTileId);
+      if (neighbour == address(0)) continue;
+      BuildingType neighbourBuilding = Tiles.get(neighbourTileId);
       int256 bonusNeighbour;
       // Same
-      if (neighbour.building == buildingType) {
+      if (neighbourBuilding == buildingType) {
         newTileRate += gameProperties.bonusSame;
         bonusNeighbour = gameProperties.bonusSame;
-      } 
+      } else if ((neighbourBuilding < buildingType)
+        || ((neighbourBuilding == type(BuildingType).max) && (uint(buildingType) == 0))
+      ) { 
         // Neighbour is victim
-        else if ((neighbour.building < buildingType)
-        || ((neighbour.building == type(BuildingType).max)
-        && (uint(buildingType) == 0))) { 
-          newTileRate += gameProperties.bonusEnemy;
-          bonusNeighbour = gameProperties.bonusVictim;
-      }       
+        newTileRate += gameProperties.bonusEnemy;
+        bonusNeighbour = gameProperties.bonusVictim;
+      } else {
         // Neighbour is enemy
-        else {
-          newTileRate += gameProperties.bonusVictim;
-          bonusNeighbour = gameProperties.bonusEnemy;
+        newTileRate += gameProperties.bonusVictim;
+        bonusNeighbour = gameProperties.bonusEnemy;
       }
-      OwnersData memory neighbourOwner = Owners.get(neighbour.owner);
-      if (neighbour.owner == _msgSender()) {
+      OwnersData memory neighbourData = Owners.get(neighbour);
+      if (neighbour == _msgSender()) {
         newTileRate += bonusNeighbour;
       } else {
-        uint256 rate = neighbourOwner.rate;
+        int256 rate = neighbourData.rate;
         if (rate > 0) {
-          uint256 unclaimed = neighbourOwner.unclaimed + rate * (block.timestamp - neighbourOwner.lastUpdateTime);
-          Owners.setUnclaimed(neighbour.owner, unclaimed);
+          uint256 unclaimed = neighbourData.unclaimed + uint256(rate) * (block.timestamp - neighbourData.lastUpdateTime);
+          Owners.setUnclaimed(neighbour, unclaimed);
         }
-        rate = (int256(rate) + bonusNeighbour > 0) ? uint256(int256(rate) + bonusNeighbour) : uint256(0);
-        Owners.setLastUpdateTime(neighbour.owner, block.timestamp);
-        Owners.setRate(neighbour.owner, rate);
+        Owners.setLastUpdateTime(neighbour, block.timestamp);
+        Owners.setRate(neighbour, rate + bonusNeighbour);
       }
     }
-    uint256 ownerRate = ownersData.rate;
+    int256 ownerRate = ownersData.rate;
     if (ownerRate > 0) {
-      uint256 unclaimed = ownersData.unclaimed + ownerRate * (block.timestamp - ownersData.lastUpdateTime);
+      uint256 unclaimed = ownersData.unclaimed + uint256(ownerRate) * (block.timestamp - ownersData.lastUpdateTime);
       Owners.setUnclaimed(_msgSender(), unclaimed);
     }
     Owners.setLastUpdateTime(_msgSender(), block.timestamp);
-    ownerRate = (int256(ownerRate) + newTileRate > 0) ? uint256(int256(ownerRate) + newTileRate) : uint256(0);
-    Owners.setRate(_msgSender(), ownerRate);
+    Owners.setRate(_msgSender(), ownerRate + newTileRate);
+    nft.safeMint(_msgSender(), newTileId);
   }
+
+  // TODO: Update rate when NFT changes owners.
 
   function createNeighbourPositions() internal pure returns(NeighbourPosition[] memory positions) {
     positions = new NeighbourPosition[](8);
