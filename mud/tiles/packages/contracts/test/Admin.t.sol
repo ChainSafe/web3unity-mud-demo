@@ -132,4 +132,43 @@ contract AdminTest is MudTest {
       vm.prank(admin);
       nft.mint(notAdmin, 1);
   }
+
+  function testTransfer() public {
+      IERC20Mintable token = IERC20Mintable(IWorld(worldAddress).app__getToken());
+      IERC721Mintable nft = IERC721Mintable(IWorld(worldAddress).app__getNft());
+      vm.prank(admin);
+      IWorld(worldAddress).app__configGame(
+        1, // gameId,
+        10, // xSize,
+        5, // ySize,
+        10, // baseRate,
+        1, // bonusSame,
+        3, // bonusEnemy,
+        -2, // bonusVictim,
+        5 // pricePerTile
+      );
+      GamePropertiesData memory gameProperties = GameProperties.get(1);
+      assertEq(gameProperties.pricePerTile, 5);
+
+      vm.prank(notAdmin);
+      IWorld(worldAddress).app__placeTile{value: 5}(
+        1,
+        1,
+        1,
+        BuildingType.Circle
+      );
+      skip(3);
+      assertEq(worldAddress.balance, 5);
+      OwnersData memory notAdminData = Owners.get(notAdmin);
+      assertEq(notAdminData.rate, 10);
+      vm.prank(notAdmin);
+      nft.approve(admin, 10101);
+      vm.prank(admin);
+      nft.safeTransferFrom(notAdmin, admin, 10101);
+      assertEq(nft.ownerOf(10101), admin);
+      notAdminData = Owners.get(notAdmin);
+      assertEq(notAdminData.rate, 0);
+      OwnersData memory adminData = Owners.get(admin);
+      assertEq(adminData.rate, 10);
+  }
 }

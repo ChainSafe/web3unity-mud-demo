@@ -12,7 +12,8 @@ export default defineWorld({
       args: [],
     },
     {
-      artifactPath: "@latticexyz/world-modules/out/ERC721Module.sol/ERC721Module.json",
+      artifactPath: "./out/NftModule.sol/ERC721Module.json",
+      // artifactPath: "@latticexyz/world-modules/out/ERC721Module.sol/ERC721Module.json",
       root: false,
       args: [
         {
@@ -93,6 +94,9 @@ export default defineWorld({
         ConfigSystem: {
           openAccess: false,
           accessList: ["0x953C2658358Ace1D0335a11140Bb7D2469FCbC05"],
+        },
+        UpdateSystem: {
+          openAccess: false
         }
       },
     },
