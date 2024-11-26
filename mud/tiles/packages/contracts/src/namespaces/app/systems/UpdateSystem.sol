@@ -10,11 +10,13 @@ import { Owners, OwnersData } from "../codegen/index.sol";
 import { TileRateLibrary } from "../libraries/TileRateLibrary.sol";
 
 contract UpdateSystem is System {
+  error NegativeRate();
   function updateOwnersRate(address nftAddress, address to, address from, uint256 tokenId) external {
     // Update only if it's not mint (because it's already updated during placeTile)
     if (from != address(0)) {
       int256 tileRate = TileRateLibrary.calculateTileRate(nftAddress, tokenId);
-      // update from
+      if (tileRate < 0) revert NegativeRate();
+      // Update previous owner
       OwnersData memory fromData = Owners.get(from);
       int256 fromRate = fromData.rate;
       if (fromRate > 0) {
@@ -22,8 +24,10 @@ contract UpdateSystem is System {
         Owners.setUnclaimed(from, unclaimed);
       }
       Owners.setLastUpdateTime(from, block.timestamp);
-      Owners.setRate(from, fromRate - tileRate);
-      // update to
+      int256 updatedFromRate = fromRate - tileRate;
+      if (updatedFromRate < 0) revert NegativeRate();
+      Owners.setRate(from, updatedFromRate);
+      // Update new owner
       if (to != address(0)) {
         OwnersData memory toData = Owners.get(to);
         int256 toRate = toData.rate;
@@ -33,12 +37,7 @@ contract UpdateSystem is System {
         }
         Owners.setLastUpdateTime(to, block.timestamp);
         Owners.setRate(to, toRate + tileRate);
-        int256 res = Owners.getRate(to);
       }
     }
-  }
-
-  function setValue(address user) external {
-    Owners.setLastUpdateTime(user, 8888);    
   }
 }

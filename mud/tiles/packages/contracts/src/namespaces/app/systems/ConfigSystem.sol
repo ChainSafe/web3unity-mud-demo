@@ -24,7 +24,6 @@ contract ConfigSystem is System {
       int256 bonusVictim,
       uint256 pricePerTile
   ) public {
-    // Add access control.
     if (xSize >= 100 || ySize >= 100) revert SizeInvalid();
 
     GameProperties.set(
@@ -40,7 +39,6 @@ contract ConfigSystem is System {
   }
 
   function withdraw() public {
-    // Add access control.
     ResourceId namespaceResource = WorldResourceIdLib.encodeNamespace("app");
     uint256 balance = Balances.get(namespaceResource);
     IWorld(_world()).transferBalanceToAddress(namespaceResource, _msgSender(), balance);

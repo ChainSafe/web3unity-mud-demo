@@ -16,7 +16,7 @@ library TileRateLibrary {
     int8 deltaY;
   }
 
-struct NeighbourRate {
+  struct NeighbourRate {
     address owner;
     int256 rate;
   }

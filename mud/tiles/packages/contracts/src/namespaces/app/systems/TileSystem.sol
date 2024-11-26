@@ -18,11 +18,6 @@ contract TileSystem is System {
   error FeeInvalid();
   error PositionInvalid();
 
-  struct NeighbourPosition {
-    int8 deltaX;
-    int8 deltaY;
-  }
-
   function getNft() public view returns(address) {
     ResourceId namespaceResource = WorldResourceIdLib.encodeNamespace(bytes14("TILES"));
     ResourceId erc721RegistryResource = WorldResourceIdLib.encode(RESOURCE_TABLE, "erc721-puppet", "ERC721Registry");
