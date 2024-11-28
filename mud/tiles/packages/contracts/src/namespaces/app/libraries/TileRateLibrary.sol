@@ -96,7 +96,7 @@ library TileRateLibrary {
     }
   }
 
-  function calculateTileRate(address nftAddress, uint256 tokenId) public view returns(int256 rate) {
+  function calculateTileRate(address nftAddress, uint256 tokenId) public view returns(int256 rate, bool canChange) {
     (uint256 gameId, uint256 x, uint256 y) = tilePosition(tokenId);
     BuildingType buildingType = Tiles.get(tokenId);
     GamePropertiesData memory gameProperties = GameProperties.get(gameId);
@@ -113,7 +113,10 @@ library TileRateLibrary {
         uint256(int256(y) + positions[i].deltaY)
       );
       address neighbour = _ownerOf(IERC721Mintable(nftAddress), neighbourTileId);
-      if (neighbour == address(0)) continue;
+      if (neighbour == address(0)) {
+        canChange = true;
+        continue;
+      }
       BuildingType neighbourBuilding = Tiles.get(neighbourTileId);
       // Same
       if (neighbourBuilding == buildingType) {
@@ -127,7 +130,11 @@ library TileRateLibrary {
         // Tile is victim
         rate += gameProperties.bonusVictim;
       }
-      return rate;
+      return (rate, gameProperties.endDate > block.timestamp && canChange);
     }
+  }
+
+  function min(uint256 a, uint256 b) internal pure returns(uint256) {
+    return a <= b ? a : b;
   }
 }

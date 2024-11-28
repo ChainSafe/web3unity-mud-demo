@@ -69,7 +69,8 @@ export default defineWorld({
             bonusSame: "int256",
             bonusEnemy: "int256",
             bonusVictim: "int256",
-            pricePerTile: "uint256"
+            pricePerTile: "uint256",
+            endDate: "uint256",
           },
           key: ["gameId"],
         },
@@ -83,11 +84,18 @@ export default defineWorld({
         Owners: {
           schema: {
             ownerAddress: "address",
-            rate: "int256",
-            lastUpdateTime: "uint256",
             unclaimed: "uint256"
           },
           key: ["ownerAddress"],
+        },
+        OwnerRates: {
+          schema: {
+            ownerAddress: "address",
+            gameId: "uint256",
+            rate: "int256",
+            lastUpdateTime: "uint256",
+          },
+          key: ["ownerAddress", "gameId"],
         },
       },
       systems: {

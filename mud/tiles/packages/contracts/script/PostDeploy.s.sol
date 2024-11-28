@@ -51,7 +51,7 @@ contract PostDeploy is Script {
 
     IWorld(worldAddress).grantAccess(updateResource, tokenAddress);
 
-    ResourceId nftResource = WorldResourceIdLib.encode(RESOURCE_SYSTEM, "app", "NftSystem");
+    // ResourceId nftResource = WorldResourceIdLib.encode(RESOURCE_SYSTEM, "app", "NftSystem");
     // address systemAddress = Systems.getSystem(nftResource);
     address systemAddress = Systems.getSystem(_erc721SystemId("TILES"));
     IWorld(worldAddress).grantAccess(updateResource, systemAddress);

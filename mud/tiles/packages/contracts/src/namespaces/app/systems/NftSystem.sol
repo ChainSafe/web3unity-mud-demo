@@ -6,6 +6,7 @@ import { WorldResourceIdLib } from "@latticexyz/world/src/WorldResourceId.sol";
 import { ResourceId } from "@latticexyz/store/src/ResourceId.sol";
 import { RESOURCE_SYSTEM } from "@latticexyz/world/src/worldResourceTypes.sol";
 import { IWorld } from "../../../codegen/world/IWorld.sol";
+import { UpdateSystem } from "./UpdateSystem.sol";
 
 contract NftSystem is ERC721System {
 
@@ -13,10 +14,10 @@ contract NftSystem is ERC721System {
     address from = super._update(to, tokenId, auth);
     address tokenAddress = address(puppet());
     ResourceId updateResource = WorldResourceIdLib.encode(RESOURCE_SYSTEM, "app", "UpdateSystem");
-    bytes memory returnData = IWorld(_world()).call(
+    IWorld(_world()).call(
       updateResource,
-      abi.encodeWithSignature("updateOwnersRate(address,address,address,uint256)",
-      tokenAddress, to, from, tokenId)
+      abi.encodeWithSelector(UpdateSystem.updateOwnersRate.selector,
+        tokenAddress, to, from, tokenId)
     );
     return from;
   }
