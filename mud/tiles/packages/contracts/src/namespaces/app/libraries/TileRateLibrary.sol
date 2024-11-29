@@ -94,6 +94,7 @@ library TileRateLibrary {
         neigbourRates[i] = NeighbourRate(neighbour, bonusNeighbour);
       }
     }
+    return (newTileRate, neigbourRates);
   }
 
   function calculateTileRate(address nftAddress, uint256 tokenId) public view returns(int256 rate, bool canChange) {
@@ -130,8 +131,8 @@ library TileRateLibrary {
         // Tile is victim
         rate += gameProperties.bonusVictim;
       }
-      return (rate, gameProperties.endDate > block.timestamp && canChange);
     }
+    return (rate, gameProperties.endDate > block.timestamp && canChange);
   }
 
   function min(uint256 a, uint256 b) internal pure returns(uint256) {
