@@ -25,30 +25,22 @@ contract PostDeploy is Script {
     // Start broadcasting transactions from the deployer account
     vm.startBroadcast(deployerPrivateKey);
 
-    ResourceId ownersResource = WorldResourceIdLib.encode(RESOURCE_SYSTEM, "app", "OwnersSystem");
     // Allow Owners system to mint tokens.
+    ResourceId ownersResource = WorldResourceIdLib.encode(RESOURCE_SYSTEM, "app", "OwnersSystem");
     IWorld(worldAddress).transferOwnership(
       WorldResourceIdLib.encodeNamespace(bytes14("TOKENS")),
       Systems.getSystem(ownersResource)
     );
 
-    ResourceId tileResource = WorldResourceIdLib.encode(RESOURCE_SYSTEM, "app", "TileSystem");
     // Allow Tile system to mint NFTs.
+    ResourceId tileResource = WorldResourceIdLib.encode(RESOURCE_SYSTEM, "app", "TileSystem");
     IWorld(worldAddress).transferOwnership(
       WorldResourceIdLib.encodeNamespace(bytes14("TILES")),
       Systems.getSystem(tileResource)
     );
 
-
-    // Grant access to tables
-    ResourceId namespaceResource = WorldResourceIdLib.encodeNamespace(bytes14("TILES"));
-    ResourceId erc721RegistryResource = WorldResourceIdLib.encode(RESOURCE_TABLE, "erc721-puppet", "ERC721Registry");
-    address tokenAddress = ERC721Registry.getTokenAddress(erc721RegistryResource, namespaceResource);
+    // Allow Nft system to update owners rates.
     ResourceId updateResource = WorldResourceIdLib.encode(RESOURCE_SYSTEM, "app", "UpdateSystem");
-
-
-    IWorld(worldAddress).grantAccess(updateResource, tokenAddress);
-
     address systemAddress = Systems.getSystem(_erc721SystemId("TILES"));
     IWorld(worldAddress).grantAccess(updateResource, systemAddress);
 
