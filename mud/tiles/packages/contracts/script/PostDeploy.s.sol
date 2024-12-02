@@ -8,6 +8,9 @@ import { StoreSwitch } from "@latticexyz/store/src/StoreSwitch.sol";
 import { WorldResourceIdLib } from "@latticexyz/world/src/WorldResourceId.sol";
 import { ResourceId } from "@latticexyz/store/src/ResourceId.sol";
 import { RESOURCE_SYSTEM } from "@latticexyz/world/src/worldResourceTypes.sol";
+import { RESOURCE_TABLE } from "@latticexyz/store/src/storeResourceTypes.sol";
+import { ERC721Registry } from "@latticexyz/world-modules/src/codegen/index.sol";
+import { _erc721SystemId } from "@latticexyz/world-modules/src/modules/erc721-puppet/utils.sol";
 
 import { IWorld } from "../src/codegen/world/IWorld.sol";
 
@@ -22,19 +25,24 @@ contract PostDeploy is Script {
     // Start broadcasting transactions from the deployer account
     vm.startBroadcast(deployerPrivateKey);
 
-    ResourceId ownersResource = WorldResourceIdLib.encode(RESOURCE_SYSTEM, "app", "OwnersSystem");
     // Allow Owners system to mint tokens.
+    ResourceId ownersResource = WorldResourceIdLib.encode(RESOURCE_SYSTEM, "app", "OwnersSystem");
     IWorld(worldAddress).transferOwnership(
       WorldResourceIdLib.encodeNamespace(bytes14("TOKENS")),
       Systems.getSystem(ownersResource)
     );
 
-    ResourceId tileResource = WorldResourceIdLib.encode(RESOURCE_SYSTEM, "app", "TileSystem");
     // Allow Tile system to mint NFTs.
+    ResourceId tileResource = WorldResourceIdLib.encode(RESOURCE_SYSTEM, "app", "TileSystem");
     IWorld(worldAddress).transferOwnership(
       WorldResourceIdLib.encodeNamespace(bytes14("TILES")),
       Systems.getSystem(tileResource)
     );
+
+    // Allow Nft system to update owners rates.
+    ResourceId updateResource = WorldResourceIdLib.encode(RESOURCE_SYSTEM, "app", "UpdateSystem");
+    address systemAddress = Systems.getSystem(_erc721SystemId("TILES"));
+    IWorld(worldAddress).grantAccess(updateResource, systemAddress);
 
     vm.stopBroadcast();
   }

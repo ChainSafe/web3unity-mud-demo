@@ -12,7 +12,6 @@ import { IWorld } from "../../../codegen/world/IWorld.sol";
 contract ConfigSystem is System {
 
   error SizeInvalid();
-  event Withdraw(uint256 indexed a);
 
   function configGame(
       uint256 gameId,
@@ -22,9 +21,9 @@ contract ConfigSystem is System {
       int256 bonusSame,
       int256 bonusEnemy,
       int256 bonusVictim,
-      uint256 pricePerTile
+      uint256 pricePerTile,
+      uint256 endDate
   ) public {
-    // Add access control.
     if (xSize >= 100 || ySize >= 100) revert SizeInvalid();
 
     GameProperties.set(
@@ -35,12 +34,12 @@ contract ConfigSystem is System {
       bonusSame,
       bonusEnemy,
       bonusVictim,
-      pricePerTile
+      pricePerTile,
+      endDate
     );
   }
 
   function withdraw() public {
-    // Add access control.
     ResourceId namespaceResource = WorldResourceIdLib.encodeNamespace("app");
     uint256 balance = Balances.get(namespaceResource);
     IWorld(_world()).transferBalanceToAddress(namespaceResource, _msgSender(), balance);

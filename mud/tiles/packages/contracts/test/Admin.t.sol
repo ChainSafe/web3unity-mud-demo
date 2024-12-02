@@ -8,7 +8,7 @@ import { ResourceId } from "@latticexyz/store/src/ResourceId.sol";
 import { RESOURCE_TABLE } from "@latticexyz/store/src/storeResourceTypes.sol";
 import { ERC20Registry } from "@latticexyz/world-modules/src/codegen/index.sol";
 import { IWorld } from "../src/codegen/world/IWorld.sol";
-import { GameProperties, GamePropertiesData, Owners, OwnersData } from "../src/namespaces/app/codegen/index.sol";
+import { GameProperties, GamePropertiesData, Owners, OwnerRates, OwnerRatesData } from "../src/namespaces/app/codegen/index.sol";
 import { BuildingType } from "../src/codegen/common.sol";
 import { IERC20Mintable } from "@latticexyz/world-modules/src/modules/erc20-puppet/IERC20Mintable.sol";
 import { IERC721Mintable } from "@latticexyz/world-modules/src/modules/erc721-puppet/IERC721Mintable.sol";
@@ -36,7 +36,8 @@ contract AdminTest is MudTest {
         1, // bonusSame,
         3, // bonusEnemy,
         -2, // bonusVictim,
-        5 // pricePerTile
+        5, // pricePerTile,
+        block.timestamp + 1000
       );
       GamePropertiesData memory gameProperties = GameProperties.get(1);
       assertEq(gameProperties.pricePerTile, 5);
@@ -51,7 +52,8 @@ contract AdminTest is MudTest {
         1, // bonusSame,
         3, // bonusEnemy,
         -2, // bonusVictim,
-        5 // pricePerTile
+        5, // pricePerTile
+        block.timestamp + 1000
       );
       gameProperties = GameProperties.get(1);
       assertEq(gameProperties.pricePerTile, 5);
@@ -67,7 +69,8 @@ contract AdminTest is MudTest {
         1, // bonusSame,
         3, // bonusEnemy,
         -2, // bonusVictim,
-        5 // pricePerTile
+        5, // pricePerTile
+        block.timestamp + 1000
       );
       GamePropertiesData memory gameProperties = GameProperties.get(1);
       assertEq(gameProperties.pricePerTile, 5);
@@ -103,7 +106,8 @@ contract AdminTest is MudTest {
         1, // bonusSame,
         3, // bonusEnemy,
         -2, // bonusVictim,
-        5 // pricePerTile
+        5, // pricePerTile
+        block.timestamp + 1000
       );
       GamePropertiesData memory gameProperties = GameProperties.get(1);
       assertEq(gameProperties.pricePerTile, 5);
@@ -117,10 +121,12 @@ contract AdminTest is MudTest {
       );
       skip(3);
       assertEq(worldAddress.balance, 5);
-      OwnersData memory notAdminData = Owners.get(notAdmin);
+      OwnerRatesData memory notAdminData = OwnerRates.get(notAdmin, 1);
       assertEq(notAdminData.rate, 10);
       vm.prank(notAdmin);
-      IWorld(worldAddress).app__claim();
+      uint256[] memory games = new uint256[](1);
+      games[0] = 1;
+      IWorld(worldAddress).app__claim(games);
       assertEq(token.balanceOf(notAdmin), 30);
       assertEq(nft.balanceOf(notAdmin), 1);
       assertEq(nft.ownerOf(10101), notAdmin);
@@ -131,5 +137,53 @@ contract AdminTest is MudTest {
       vm.expectRevert();
       vm.prank(admin);
       nft.mint(notAdmin, 1);
+  }
+
+  function testTransfer() public {
+      IERC20Mintable token = IERC20Mintable(IWorld(worldAddress).app__getToken());
+      IERC721Mintable nft = IERC721Mintable(IWorld(worldAddress).app__getNft());
+      vm.prank(admin);
+      IWorld(worldAddress).app__configGame(
+        1, // gameId,
+        10, // xSize,
+        5, // ySize,
+        10, // baseRate,
+        1, // bonusSame,
+        3, // bonusEnemy,
+        -2, // bonusVictim,
+        5, // pricePerTile
+        block.timestamp + 1000
+      );
+      GamePropertiesData memory gameProperties = GameProperties.get(1);
+      assertEq(gameProperties.pricePerTile, 5);
+
+      vm.prank(notAdmin);
+      IWorld(worldAddress).app__placeTile{value: 5}(
+        1,
+        0,
+        0,
+        BuildingType.Circle
+      );
+      assertEq(worldAddress.balance, 5);
+      OwnerRatesData memory notAdminData = OwnerRates.get(notAdmin, 1);
+      assertEq(notAdminData.rate, 10);
+      vm.prank(notAdmin);
+      nft.approve(admin, 10000);
+      vm.prank(admin);
+      vm.expectRevert();
+      nft.safeTransferFrom(notAdmin, admin, 10000);
+      vm.startPrank(notAdmin);
+      IWorld(worldAddress).app__placeTile{value: 5}(1, 0, 1, BuildingType.Circle);
+      IWorld(worldAddress).app__placeTile{value: 5}(1, 1, 0, BuildingType.Circle);
+      IWorld(worldAddress).app__placeTile{value: 5}(1, 1, 1, BuildingType.Circle);
+      notAdminData = OwnerRates.get(notAdmin, 1);
+      assertEq(notAdminData.rate, 52);
+      vm.prank(admin);
+      nft.safeTransferFrom(notAdmin, admin, 10000);
+      assertEq(nft.ownerOf(10000), admin);
+      notAdminData = OwnerRates.get(notAdmin, 1);
+      assertEq(notAdminData.rate, 39);
+      OwnerRatesData memory adminData = OwnerRates.get(admin, 1);
+      assertEq(adminData.rate, 13);
   }
 }

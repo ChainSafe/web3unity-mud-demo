@@ -12,7 +12,8 @@ export default defineWorld({
       args: [],
     },
     {
-      artifactPath: "@latticexyz/world-modules/out/ERC721Module.sol/ERC721Module.json",
+      artifactPath: "./out/NftModule.sol/ERC721Module.json",
+      // artifactPath: "@latticexyz/world-modules/out/ERC721Module.sol/ERC721Module.json",
       root: false,
       args: [
         {
@@ -68,7 +69,8 @@ export default defineWorld({
             bonusSame: "int256",
             bonusEnemy: "int256",
             bonusVictim: "int256",
-            pricePerTile: "uint256"
+            pricePerTile: "uint256",
+            endDate: "uint256",
           },
           key: ["gameId"],
         },
@@ -82,17 +84,27 @@ export default defineWorld({
         Owners: {
           schema: {
             ownerAddress: "address",
-            rate: "int256",
-            lastUpdateTime: "uint256",
             unclaimed: "uint256"
           },
           key: ["ownerAddress"],
+        },
+        OwnerRates: {
+          schema: {
+            ownerAddress: "address",
+            gameId: "uint256",
+            rate: "int256",
+            lastUpdateTime: "uint256",
+          },
+          key: ["ownerAddress", "gameId"],
         },
       },
       systems: {
         ConfigSystem: {
           openAccess: false,
           accessList: ["0x953C2658358Ace1D0335a11140Bb7D2469FCbC05"],
+        },
+        UpdateSystem: {
+          openAccess: false
         }
       },
     },
